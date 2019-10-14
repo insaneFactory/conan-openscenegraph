@@ -4,7 +4,7 @@ import os
 
 class OpenscenegraphConan(ConanFile):
     name = "openscenegraph"
-    version = "3.6.3"
+    version = "3.6.4"
     description = "OpenSceneGraph is an open source high performance 3D graphics toolkit"
     topics = ("conan", "openscenegraph", "graphics")
     url = "https://github.com/bincrafters/conan-openscenegraph"
@@ -37,7 +37,7 @@ class OpenscenegraphConan(ConanFile):
 
     requires = (
         "zlib/1.2.11",
-        "freetype/2.9.0@bincrafters/stable",
+        "freetype/2.10.0@bincrafters/stable",
         "libjpeg/9c",
         "libxml2/2.9.8@bincrafters/stable",
         "libcurl/7.61.1@bincrafters/stable",
@@ -90,7 +90,7 @@ class OpenscenegraphConan(ConanFile):
 
     def source(self):
         prefix = "OpenSceneGraph"
-        sha256 = "51bbc79aa73ca602cd1518e4e25bd71d41a10abd296e18093a8acfebd3c62696"
+        sha256 = "81394d1b484c631028b85d21c5535280c21bbd911cb058e8746c87e93e7b9d33"
         tools.get("{0}/archive/{1}-{2}.tar.gz".format(self.homepage, prefix,self.version), sha256=sha256)
         extracted_dir = "{}-{}-".format(prefix, prefix) + self.version
         os.rename(extracted_dir, self._source_subfolder)
