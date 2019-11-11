@@ -39,12 +39,12 @@ class OpenscenegraphConan(ConanFile):
         "zlib/1.2.11",
         "freetype/2.10.1",
         "libjpeg/9c",
-        "libxml2/2.9.8@bincrafters/stable",
+        "libxml2/2.9.9",
         "libcurl/7.66.0@bincrafters/stable",
         "libpng/1.6.37",
         "libtiff/4.0.9",
-        "sdl2/2.0.9@bincrafters/stable",
-        "jasper/2.0.14@conan/stable",
+        "sdl2/2.0.10@bincrafters/stable",
+        "jasper/2.0.14",
         "cairo/1.17.2@bincrafters/stable",
         # "openblas/0.2.20@conan/stable", Removed until openblas is in conan center
     )
@@ -103,6 +103,33 @@ class OpenscenegraphConan(ConanFile):
         cmake.definitions['BUILD_OSG_EXAMPLES'] = self.options.build_osg_examples
         cmake.definitions["DYNAMIC_OPENTHREADS"] = self.options.dynamic_openthreads
 
+        # Freetype
+        freetypeLibs = self.deps_cpp_info["freetype"].libs
+        if self.options["freetype"].with_png:
+            freetypeLibs.extend(self.deps_cpp_info["libpng"].libs)
+        if self.options["freetype"].with_zlib:
+            freetypeLibs.extend(self.deps_cpp_info["zlib"].libs)
+        if self.options["freetype"].with_bzip2:
+            freetypeLibs.extend(self.deps_cpp_info["bzip2"].libs)
+        self.output.info("Freetype libs: " + str(freetypeLibs))
+        cmake.definitions["FREETYPE_LIBRARY"] = ";".join(freetypeLibs)
+        
+        # Jasper
+        jasperLibs = self.deps_cpp_info["jasper"].libs
+        if self.options["jasper"].jpegturbo:
+            jasperLibs.extend(self.deps_cpp_info["libjpeg-turbo"].libs)
+        else:
+            jasperLibs.extend(self.deps_cpp_info["libjpeg"].libs)
+        self.output.info("Jasper libs: " + str(jasperLibs))
+        cmake.definitions["JASPER_LIBRARY"] = ";".join(jasperLibs)
+        cmake.definitions["JASPER_INCLUDE_DIR"] = ";".join(self.deps_cpp_info["jasper"].includedirs)
+        cmake.definitions["JASPER_FOUND"] = True
+        
+        # Cairo
+        cmake.definitions["CAIRO_INCLUDE_DIRS"] = ";".join(self.deps_cpp_info["cairo"].includedirs)
+        cmake.definitions["CAIRO_LIBRARY_DIRS"] = ";".join(self.deps_cpp_info["cairo"].libdirs)
+        cmake.definitions["CAIRO_LIBRARIES"] = ";".join(self.deps_cpp_info["cairo"].libs)
+
         if self.settings.compiler == "Visual Studio":
             cmake.definitions['BUILD_WITH_STATIC_CRT']= "MT" in str(self.settings.compiler.runtime)
 
@@ -112,11 +139,10 @@ class OpenscenegraphConan(ConanFile):
     def build(self):
         cmake = self._configure_cmake()
         cmake.build()
+        cmake.install()
 
     def package(self):
-        self.copy(pattern="LICENSE", dst="licenses", src=self._source_subfolder)
-        cmake = self._configure_cmake()
-        cmake.install()
+        self.copy(pattern="LICENSE*", dst="licenses", src=self._source_subfolder)
 
     def package_info(self):
         self.cpp_info.libs = tools.collect_libs(self)
